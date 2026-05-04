@@ -1,11 +1,10 @@
-import dotenv from 'dotenv';
+import 'dotenv/config';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import express from 'express';
 import cors from 'cors';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-dotenv.config({ path: path.join(__dirname, '.env') });
 
 const { search: searchBoticario } = await import('./search.js');
 const { search: searchNatura }    = await import('./search_natura.js');
