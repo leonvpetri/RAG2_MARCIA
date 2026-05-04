@@ -1,0 +1,6 @@
+node_modules/
+.env
+progress.json
+progress_natura.json
+public/boticario/
+public/natura/

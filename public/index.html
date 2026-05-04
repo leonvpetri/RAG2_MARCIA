@@ -1,0 +1,784 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Catálogo Inteligente · Natura & Boticário</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap" rel="stylesheet">
+  <style>
+    /* ── Reset & base ── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'DM Sans', system-ui, sans-serif;
+      background: #F9F7F5;
+      color: #18181B;
+      min-height: 100vh;
+    }
+
+    /* ── Section wrapper ── */
+    #revista-digital {
+      padding: 80px 24px 100px;
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    /* ── Section header ── */
+    .section-header { margin-bottom: 48px; }
+
+    .kicker-row {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+
+    .section-kicker {
+      display: inline-flex;
+      align-items: center;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: #71717A;
+      background: #F4F4F5;
+      padding: 4px 12px;
+      border-radius: 9999px;
+      border: 1px solid #E4E4E7;
+      white-space: nowrap;
+    }
+
+    .kicker-line {
+      flex: 1;
+      height: 1px;
+      background: #E4E4E7;
+    }
+
+    .section-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(40px, 6vw, 64px);
+      font-weight: 500;
+      line-height: 0.96;
+      color: #18181B;
+      margin-bottom: 16px;
+      letter-spacing: -0.02em;
+    }
+
+    .section-subtitle {
+      font-size: 16px;
+      color: #71717A;
+      max-width: 480px;
+      line-height: 1.6;
+    }
+
+    /* ── Widget container ── */
+    .widget {
+      display: flex;
+      flex-direction: column;
+      border-radius: 24px;
+      overflow: hidden;
+      border: 1px solid #E4E4E7;
+      box-shadow: 0 25px 50px -12px rgba(24,24,27,0.12);
+      animation: fadeUp 0.5s cubic-bezier(0.22, 1, 0.36, 1) 0.15s both;
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (min-width: 1024px) {
+      .widget {
+        flex-direction: row;
+        height: clamp(520px, 70vh, 720px);
+      }
+    }
+
+    /* ── Left: Chat panel (40%) ── */
+    .chat-panel {
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+      height: 480px;
+      background: white;
+      border-right: 1px solid #EBE4DC;
+      flex-shrink: 0;
+      z-index: 20;
+    }
+
+    @media (min-width: 1024px) {
+      .chat-panel {
+        width: 40%;
+        min-width: 360px;
+        height: 100%;
+      }
+    }
+
+    /* Chat header */
+    .chat-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 24px;
+      border-bottom: 1px solid #EBE4DC;
+      background: white;
+      flex-shrink: 0;
+    }
+
+    .chat-header-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .agent-avatar {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 40px; height: 40px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #FB923C, #D97706);
+      color: white;
+      box-shadow: 0 4px 12px rgba(249,115,22,0.25);
+      flex-shrink: 0;
+    }
+
+    .agent-name {
+      font-size: 15px;
+      font-weight: 600;
+      color: #27272A;
+      line-height: 1.2;
+      letter-spacing: -0.01em;
+    }
+
+    .agent-subtitle {
+      font-size: 11px;
+      color: #EA580C;
+      font-weight: 500;
+      letter-spacing: 0.03em;
+      margin-top: 1px;
+    }
+
+    /* Messages area */
+    #chat {
+      flex: 1;
+      overflow-y: auto;
+      padding: 24px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      background: linear-gradient(to bottom, white, #FAFAFA);
+      scroll-behavior: smooth;
+    }
+
+    #chat::-webkit-scrollbar { width: 3px; }
+    #chat::-webkit-scrollbar-thumb { background: #E4E4E7; border-radius: 2px; }
+    #chat::-webkit-scrollbar-track { background: transparent; }
+
+    /* Message rows */
+    .message {
+      display: flex;
+      gap: 10px;
+      max-width: 90%;
+      animation: msgIn 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    .message.user   { margin-left: auto; flex-direction: row-reverse; }
+    .message.bot    { margin-right: auto; }
+
+    @keyframes msgIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Message avatar circles */
+    .msg-avatar {
+      width: 28px; height: 28px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+      margin-top: 4px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+    }
+    .message.user .msg-avatar { background: #F0EBE6; color: #52525B; }
+    .message.bot  .msg-avatar { background: #FEF3C7; color: #D97706; }
+
+    /* Bubble body (text + code badge) */
+    .msg-body { display: flex; flex-direction: column; }
+
+    .bubble {
+      padding: 12px 16px;
+      font-size: 14px;
+      line-height: 1.65;
+      white-space: pre-wrap;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    }
+
+    .message.user .bubble {
+      background: #27272A;
+      color: white;
+      border-radius: 16px 16px 2px 16px;
+    }
+
+    .message.bot .bubble {
+      background: white;
+      color: #3F3F46;
+      border: 1px solid #F0EBE6;
+      border-radius: 16px 16px 16px 2px;
+    }
+
+    /* Page badge inside bot bubble */
+    .page-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      margin-top: 8px;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #C2410C;
+      background: rgba(255,237,213,0.8);
+      padding: 4px 8px;
+      border-radius: 4px;
+      border: 1px solid rgba(251,146,60,0.2);
+    }
+
+    /* Code badge */
+    .codigo-busca {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      margin-top: 8px;
+      background: rgba(249,115,22,0.08);
+      color: #C2410C;
+      font-size: 12px; font-weight: 700;
+      padding: 5px 11px;
+      border-radius: 20px;
+      border: 1px solid rgba(249,115,22,0.2);
+      letter-spacing: 0.3px;
+      user-select: all; cursor: copy;
+      transition: background 0.15s;
+    }
+    .codigo-busca:hover { background: rgba(249,115,22,0.14); }
+
+    /* Product card */
+    .product-card {
+      margin-top: 10px;
+      background: white;
+      border-radius: 16px;
+      overflow: hidden;
+      border: 1px solid #F0EBE6;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+      max-width: 280px;
+    }
+    .product-card img {
+      width: 100%; max-height: 180px;
+      object-fit: cover; display: block;
+      background: #F5F0EB;
+    }
+    .card-body { padding: 12px 14px; }
+    .card-page-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 10px; font-weight: 700;
+      letter-spacing: 0.1em; text-transform: uppercase;
+      color: #C2410C;
+      background: #FFF7ED;
+      padding: 3px 8px; border-radius: 4px;
+      margin-bottom: 10px;
+    }
+    .btn-flip {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: linear-gradient(to right, #FB923C, #F59E0B);
+      color: white;
+      padding: 8px 14px; border-radius: 9999px;
+      text-decoration: none; font-size: 12px; font-weight: 600;
+      transition: opacity 0.15s, transform 0.12s;
+      box-shadow: 0 2px 8px rgba(249,115,22,0.3);
+    }
+    .btn-flip:hover { opacity: 0.88; transform: translateY(-1px); }
+
+    /* Typing / loading indicator */
+    .typing-indicator {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 14px 18px;
+      background: white;
+      border: 1px solid #F0EBE6;
+      border-radius: 16px 16px 16px 2px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+      width: fit-content;
+    }
+    /* CSS spinner matching Loader2 */
+    .spinner {
+      width: 16px; height: 16px;
+      border: 2px solid #FED7AA;
+      border-top-color: #FB923C;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Input footer */
+    .chat-footer {
+      padding: 16px;
+      background: white;
+      border-top: 1px solid #F0EBE6;
+      flex-shrink: 0;
+    }
+
+    .input-wrapper {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 6px 6px 18px;
+      background: #FBF9F8;
+      border: 1px solid #EBE4DC;
+      border-radius: 9999px;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .input-wrapper:focus-within {
+      border-color: #FB923C;
+      box-shadow: 0 0 0 4px rgba(249,115,22,0.1);
+    }
+
+    #inp {
+      flex: 1;
+      border: none; outline: none;
+      background: transparent;
+      font-size: 14px; font-family: 'DM Sans', sans-serif;
+      color: #27272A;
+      padding: 6px 0;
+    }
+    #inp::placeholder { color: #A1A1AA; }
+    #inp:disabled { opacity: 0.5; }
+
+    #btn {
+      width: 40px; height: 40px;
+      border-radius: 50%; border: none; cursor: pointer;
+      background: linear-gradient(135deg, #FB923C, #F59E0B);
+      color: white;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+      transition: opacity 0.15s, transform 0.12s;
+      box-shadow: 0 2px 8px rgba(249,115,22,0.35);
+    }
+    #btn:hover:not(:disabled) { opacity: 0.88; }
+    #btn:active { transform: scale(0.93); }
+    #btn:disabled {
+      background: linear-gradient(135deg, #E4E4E7, #E4E4E7);
+      color: #A1A1AA; box-shadow: none; cursor: not-allowed;
+    }
+    #btn svg { width: 16px; height: 16px; margin-left: 1px; }
+
+    .status-badge {
+      text-align: center;
+      margin-top: 12px;
+    }
+    .status-badge span {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: #059669;
+      background: #ECFDF5;
+      padding: 3px 10px;
+      border-radius: 9999px;
+    }
+
+    /* ── Right: Flipbook panel (60%) ── */
+    .flipbook-panel {
+      display: none; /* mobile: hidden until first search */
+      flex-direction: column;
+      flex: 1;
+      background: #F9F7F5;
+      border-top: 1px solid #EBE4DC;
+      position: relative;
+      overflow: hidden;
+      height: 420px;
+    }
+    .flipbook-panel.visible { display: flex; }
+
+    @media (min-width: 1024px) {
+      .flipbook-panel {
+        display: flex;
+        border-top: none;
+        border-left: 1px solid #EBE4DC;
+        height: auto;
+      }
+    }
+
+    /* Placeholder */
+    #flipbook-placeholder {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 40px;
+      background: #F9F7F5;
+    }
+
+    .placeholder-icon {
+      width: 80px; height: 80px;
+      border-radius: 50%;
+      background: #FEF3C7;
+      border: 1px solid #FDE68A;
+      display: flex; align-items: center; justify-content: center;
+      color: #F59E0B;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    }
+
+    .placeholder-title {
+      font-size: 17px;
+      font-weight: 500;
+      color: #27272A;
+      margin-bottom: 8px;
+      letter-spacing: -0.01em;
+    }
+
+    .placeholder-desc {
+      font-size: 13px;
+      color: #71717A;
+      text-align: center;
+      max-width: 240px;
+      line-height: 1.6;
+    }
+
+    /* Flipbook viewer */
+    #flipbook-viewer {
+      display: none;
+      position: absolute;
+      inset: 0;
+      flex-direction: column;
+    }
+    #flipbook-viewer.visible { display: flex; }
+
+    .flipbook-overlay {
+      position: absolute;
+      top: 0; left: 0; right: 0; z-index: 10;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 20px;
+      background: linear-gradient(to bottom, rgba(26,26,26,0.8), transparent);
+      pointer-events: none;
+    }
+
+    .overlay-brand,
+    .overlay-page {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(0,0,0,0.45);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      color: #E4E4E7;
+      padding: 6px 14px;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,0.1);
+      pointer-events: auto;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+    }
+
+    .overlay-brand span { font-size: 12px; font-weight: 500; letter-spacing: 0.03em; }
+    .overlay-brand svg  { color: #FB923C; }
+
+    .overlay-page .page-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; opacity: 0.7; }
+    .overlay-page .page-num   { font-size: 15px; font-weight: 700; color: #FB923C; font-variant-numeric: tabular-nums; }
+
+    #flipbook-iframe {
+      width: 100%; height: 100%;
+      border: none;
+      background: #1A1A1A;
+      flex: 1;
+    }
+  </style>
+</head>
+<body>
+
+<section id="revista-digital">
+  <div class="container">
+
+    <!-- Section header -->
+    <div class="section-header">
+      <div class="kicker-row">
+        <span class="section-kicker">REVISTA DIGITAL</span>
+        <div class="kicker-line"></div>
+      </div>
+      <h2 class="section-title">Catálogo Inteligente</h2>
+      <p class="section-subtitle">Pergunte sobre qualquer produto Natura ou Boticário e a consultora virtual abre a página certa da revista para você.</p>
+    </div>
+
+    <!-- Widget: Chat + Flipbook -->
+    <div class="widget">
+
+      <!-- Left: Chat (40%) -->
+      <div class="chat-panel">
+
+        <!-- Header -->
+        <header class="chat-header">
+          <div class="chat-header-left">
+            <div class="agent-avatar">
+              <!-- Sparkles icon -->
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 3l-1.912 5.813a2 2 0 01-1.275 1.275L3 12l5.813 1.912a2 2 0 011.275 1.275L12 21l1.912-5.813a2 2 0 011.275-1.275L21 12l-5.813-1.912a2 2 0 01-1.275-1.275L12 3z" fill="rgba(255,255,255,0.9)" stroke="none"/>
+                <path d="M5 3v4M19 17v4M3 5h4M17 19h4" stroke="rgba(255,255,255,0.6)" stroke-width="1.5"/>
+              </svg>
+            </div>
+            <div>
+              <p class="agent-name">Consultoria</p>
+              <p class="agent-subtitle">Natura · Boticário · Beta</p>
+            </div>
+          </div>
+        </header>
+
+        <!-- Messages -->
+        <main id="chat"></main>
+
+        <!-- Input -->
+        <footer class="chat-footer">
+          <div class="input-wrapper">
+            <input id="inp" type="text"
+              placeholder="Qual produto você procura?"
+              autocomplete="off">
+            <button id="btn" title="Enviar">
+              <!-- Send icon -->
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M22 2L11 13"/>
+                <path d="M22 2L15 22 11 13 2 9l20-7z" fill="white" stroke="none"/>
+              </svg>
+            </button>
+          </div>
+          <div class="status-badge">
+            <span>
+              <!-- CheckCircle2 icon -->
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"/>
+                <path d="M9 12l2 2 4-4"/>
+              </svg>
+              Natura · Boticário
+            </span>
+          </div>
+        </footer>
+      </div>
+
+      <!-- Right: Flipbook (60%) -->
+      <div class="flipbook-panel" id="flipbook-panel">
+
+        <!-- Placeholder -->
+        <div id="flipbook-placeholder">
+          <div class="placeholder-icon">
+            <!-- BookOpen icon -->
+            <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z"/>
+              <path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z"/>
+            </svg>
+          </div>
+          <p class="placeholder-title">Revista Inteligente</p>
+          <p class="placeholder-desc">Faça uma pergunta no chat e a revista abrirá automaticamente na página do produto.</p>
+        </div>
+
+        <!-- Viewer (shown after search) -->
+        <div id="flipbook-viewer">
+          <div class="flipbook-overlay">
+            <div class="overlay-brand">
+              <!-- FileText icon -->
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#FB923C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
+                <polyline points="14 2 14 8 20 8"/>
+                <line x1="16" y1="13" x2="8" y2="13"/>
+                <line x1="16" y1="17" x2="8" y2="17"/>
+                <polyline points="10 9 9 9 8 9"/>
+              </svg>
+              <span id="overlay-brand-name">Revista_Natura</span>
+            </div>
+            <div class="overlay-page">
+              <span class="page-label">Pág:</span>
+              <span class="page-num" id="overlay-page-num">1</span>
+            </div>
+          </div>
+          <iframe id="flipbook-iframe" title="Revista Flipbook 3D" allowfullscreen></iframe>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<script>
+  const chatEl    = document.getElementById('chat');
+  const inp       = document.getElementById('inp');
+  const btn       = document.getElementById('btn');
+  const panel     = document.getElementById('flipbook-panel');
+  const placeholder = document.getElementById('flipbook-placeholder');
+  const viewer    = document.getElementById('flipbook-viewer');
+  const iframe    = document.getElementById('flipbook-iframe');
+  const brandName = document.getElementById('overlay-brand-name');
+  const pageNum   = document.getElementById('overlay-page-num');
+
+  /* ── SVG icons ── */
+  const ICON_SPARKLES = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l-1.912 5.813a2 2 0 01-1.275 1.275L3 12l5.813 1.912a2 2 0 011.275 1.275L12 21l1.912-5.813a2 2 0 011.275-1.275L21 12l-5.813-1.912a2 2 0 01-1.275-1.275L12 3z" fill="currentColor" stroke="none"/></svg>`;
+  const ICON_USER     = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 00-4-4H9a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>`;
+  const ICON_PRESENT  = `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>`;
+  const ICON_CATALOG  = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z"/><path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z"/></svg>`;
+
+  /* ── Add message ── */
+  function addMsg(role, text, card, codigo, pagina, brand) {
+    const wrap = document.createElement('div');
+    wrap.className = `message ${role}`;
+
+    // Avatar circle
+    const av = document.createElement('div');
+    av.className = 'msg-avatar';
+    av.innerHTML = role === 'user' ? ICON_USER : ICON_SPARKLES;
+
+    // Body (bubble + extras)
+    const body = document.createElement('div');
+    body.className = 'msg-body';
+
+    const bub = document.createElement('div');
+    bub.className = 'bubble';
+    bub.textContent = text;
+
+    // Page badge inside bubble (bot only)
+    if (role === 'bot' && pagina) {
+      const pb = document.createElement('div');
+      pb.className = 'page-badge';
+      pb.innerHTML = `${ICON_PRESENT} ${brand === 'boticario' ? 'Boticário' : 'Natura'} · Pág: ${pagina}`;
+      bub.appendChild(pb);
+    }
+
+    // Code badge inside bubble (bot only)
+    if (codigo) {
+      const cb = document.createElement('div');
+      cb.className = 'codigo-busca';
+      cb.textContent = `🔍 Código: ${codigo}`;
+      bub.appendChild(cb);
+    }
+
+    body.appendChild(bub);
+
+    // Product card (bot + has result)
+    if (card) {
+      const cardEl = document.createElement('div');
+      cardEl.className = 'product-card';
+      cardEl.innerHTML = `
+        <img src="${card.imagem_url}" alt="Página ${pagina}" loading="lazy">
+        <div class="card-body">
+          <div class="card-page-label">${ICON_CATALOG} Página ${pagina} do catálogo</div>
+          <a class="btn-flip" href="${card.flipbook_url}" target="_blank">📂 Ver no catálogo</a>
+        </div>`;
+      body.appendChild(cardEl);
+    }
+
+    wrap.appendChild(av);
+    wrap.appendChild(body);
+    chatEl.appendChild(wrap);
+    chatEl.scrollTop = chatEl.scrollHeight;
+    return wrap;
+  }
+
+  /* ── Typing / loading ── */
+  function addTyping() {
+    const wrap = document.createElement('div');
+    wrap.className = 'message bot';
+    wrap.innerHTML = `
+      <div class="msg-avatar">${ICON_SPARKLES}</div>
+      <div class="msg-body">
+        <div class="typing-indicator"><div class="spinner"></div></div>
+      </div>`;
+    chatEl.appendChild(wrap);
+    chatEl.scrollTop = chatEl.scrollHeight;
+    return wrap;
+  }
+
+  /* ── Update flipbook panel ── */
+  function showFlipbook(flipbookUrl, pagina, brand) {
+    iframe.src = flipbookUrl;
+    pageNum.textContent = pagina;
+    brandName.textContent = brand === 'boticario' ? 'Catálogo_Boticário' : 'Revista_Natura';
+    placeholder.style.display = 'none';
+    viewer.classList.add('visible');
+    panel.classList.add('visible'); // mobile: show panel
+    // On mobile, scroll to flipbook
+    if (window.innerWidth < 1024) {
+      setTimeout(() => panel.scrollIntoView({ behavior: 'smooth', block: 'start' }), 300);
+    }
+  }
+
+  /* ── Send message ── */
+  async function send() {
+    const text = inp.value.trim();
+    if (!text) return;
+    inp.value = '';
+    inp.disabled = true;
+    btn.disabled = true;
+
+    addMsg('user', text);
+    const t = addTyping();
+
+    try {
+      const r = await fetch('/search', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: text }),
+      });
+      const d = await r.json();
+      t.remove();
+
+      if (d.error) {
+        addMsg('bot', '❌ Erro ao buscar. Tente novamente.');
+        return;
+      }
+
+      const card = d.pagina ? d : null;
+      addMsg('bot', d.text, card, d.codigo, d.pagina, d.brand);
+
+      if (d.pagina) {
+        showFlipbook(d.flipbook_url, d.pagina, d.brand);
+      }
+    } catch {
+      t.remove();
+      addMsg('bot', 'Ops! Parece que nossa consultora teve um momento de distração. 😅 Pode repetir sua pergunta? Às vezes ela precisa de uma segundinha para se concentrar!');
+    } finally {
+      inp.disabled = false;
+      btn.disabled = false;
+      inp.focus();
+    }
+  }
+
+  btn.addEventListener('click', send);
+  inp.addEventListener('keydown', e => {
+    if (e.key === 'Enter') { e.preventDefault(); send(); }
+  });
+
+  /* ── Initial message ── */
+  addMsg('bot', `Que bom que você me chamou! 🌸
+Sou sua consultora virtual e estou aqui para ajudar você a encontrar os produtos que combinam com seu cuidado e bem-estar.
+
+Posso te ajudar a:
+• Buscar produtos Natura ou Boticário por nome
+• Mostrar preço, descrição e onde encontrar no catálogo
+• Indicar o código para localização rápida no catálogo
+
+Ah, e lembre-se: confira sempre o que eu te mostrar antes de finalizar sua escolha! 😊
+
+Você está buscando um produto Natura ou Boticário?`);
+</script>
+</body>
+</html>
