@@ -12,6 +12,18 @@ const { search: searchNatura }    = await import('./search_natura.js');
 const app = express();
 app.use(cors());
 app.use(express.json());
+app.get('/natura/:file', (req, res) => {
+  const filePath = path.join(__dirname, 'public/natura', req.params.file);
+  res.setHeader('Content-Type', 'text/html');
+  res.sendFile(filePath);
+});
+
+app.get('/boticario/:file', (req, res) => {
+  const filePath = path.join(__dirname, 'public/boticario', req.params.file);
+  res.setHeader('Content-Type', 'text/html');
+  res.sendFile(filePath);
+});
+
 app.use(express.static(path.join(__dirname, 'public')));
 app.use('/imagens', express.static(path.join(__dirname, 'public/boticario')));
 app.use('/boticario', express.static(path.join(__dirname, 'public/boticario')));
