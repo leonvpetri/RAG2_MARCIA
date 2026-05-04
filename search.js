@@ -1,7 +1,12 @@
 import { createClient } from '@supabase/supabase-js';
-import 'dotenv/config';
 
-const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_KEY);
+let _supabase;
+function getSupabase() {
+  if (!_supabase) {
+    _supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_KEY);
+  }
+  return _supabase;
+}
 
 async function getQueryEmbedding(text) {
   const response = await fetch(
@@ -86,7 +91,7 @@ async function search(query, limite = 5) {
   if (isCodigo) {
     console.log(`\nBuscando por código: "${query}"\n`);
     const raw = await rpcWithRetry(() =>
-      supabase.rpc('buscar_por_codigo', { codigo: query.trim(), limite })
+      getSupabase().rpc('buscar_por_codigo', { codigo: query.trim(), limite })
     );
     if (!raw || raw.length === 0) return console.log('Nenhum resultado encontrado.');
     const result = raw.map(formatRow);
@@ -99,7 +104,7 @@ async function search(query, limite = 5) {
 
   // Busca 15 candidatos para o reranker
   const raw = await rpcWithRetry(() =>
-    supabase.rpc('buscar_hibrido', { query_embedding: embedding, query_texto: query, limite: 15 })
+    getSupabase().rpc('buscar_hibrido', { query_embedding: embedding, query_texto: query, limite: 15 })
   );
   if (!raw || raw.length === 0) return console.log('Nenhum resultado encontrado.');
 
