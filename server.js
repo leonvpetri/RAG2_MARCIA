@@ -122,4 +122,69 @@ app.post('/search', async (req, res) => {
   }
 });
 
+const BASE_URL = process.env.BASE_URL ?? 'https://artefinal-rag2-marcia.gumtcw.easypanel.host';
+const EVOLUTION_URL = process.env.EVOLUTION_URL;
+const EVOLUTION_APIKEY = process.env.EVOLUTION_APIKEY;
+const EVOLUTION_INSTANCE = process.env.EVOLUTION_INSTANCE;
+
+async function sendWhatsApp(phone, text) {
+  await fetch(`${EVOLUTION_URL}/message/sendText/${EVOLUTION_INSTANCE}`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'apikey': EVOLUTION_APIKEY,
+    },
+    body: JSON.stringify({ number: phone, text }),
+  });
+}
+
+app.post('/whatsapp', async (req, res) => {
+  res.sendStatus(200);
+
+  try {
+    const { event, data } = req.body ?? {};
+
+    if (event !== 'messages.upsert') return;
+    if (data?.key?.fromMe !== false) return;
+
+    const phone = data?.key?.remoteJid;
+    const texto = data?.message?.conversation ?? data?.message?.extendedTextMessage?.text;
+
+    if (!phone || !texto?.trim()) return;
+
+    const brand = detectBrand(texto);
+
+    if (!brand) {
+      await sendWhatsApp(phone,
+        'Para qual catálogo você quer buscar?\n\nDigite o nome do produto + a marca:\n✅ Sérum Chronos Natura informações\n✅ Perfume Malbec Boticário informações'
+      );
+      return;
+    }
+
+    const searchFn = brand === 'natura' ? searchNatura : searchBoticario;
+    const result = await searchFn(texto);
+
+    if (!result?.paginas?.length) {
+      await sendWhatsApp(phone,
+        'Não encontrei esse produto. Tente ser mais específico — inclua o nome da linha ou o código do produto.'
+      );
+      return;
+    }
+
+    const top = result.paginas[0];
+    const pagina = top.pagina_interna ?? top.pagina;
+    const { text, codigo } = await generateResponse(texto, top, brand);
+
+    const msg1 = codigo ? `${text} 🔍 Código: ${codigo}` : text;
+    const msg2 = `${BASE_URL}${buildImagemUrl(brand, top.arquivo)}`;
+    const msg3 = `📖 Ver no catálogo: ${BASE_URL}${buildFlipbookUrl(brand, pagina)}`;
+
+    await sendWhatsApp(phone, msg1);
+    await sendWhatsApp(phone, msg2);
+    await sendWhatsApp(phone, msg3);
+  } catch (err) {
+    console.error('Erro /whatsapp:', err.message);
+  }
+});
+
 app.listen(3001, () => console.log('✅ CRM Natura + Boticário: http://localhost:3001'));
