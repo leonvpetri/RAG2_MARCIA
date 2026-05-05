@@ -11,6 +11,66 @@ const { search: searchNatura }    = await import('./search_natura.js');
 
 const app = express();
 app.use(cors());
+
+app.post('/whatsapp', express.raw({ type: '*/*' }), async (req, res) => {
+  res.sendStatus(200);
+
+  let body;
+  try {
+    const raw = req.body.toString('utf8');
+    body = JSON.parse(raw);
+  } catch (err) {
+    console.error('WhatsApp webhook parse error:', err.message);
+    console.error('Raw body:', req.body.toString('utf8').substring(0, 500));
+    return;
+  }
+
+  try {
+    const { event, data } = body ?? {};
+
+    if (event !== 'messages.upsert') return;
+    if (data?.key?.fromMe !== false) return;
+
+    const phone = data?.key?.remoteJid;
+    const texto = data?.message?.conversation ?? data?.message?.extendedTextMessage?.text;
+
+    if (!phone || !texto?.trim()) return;
+
+    const brand = detectBrand(texto);
+
+    if (!brand) {
+      await sendWhatsApp(phone,
+        'Para qual catálogo você quer buscar?\n\nDigite o nome do produto + a marca:\n✅ Sérum Chronos Natura informações\n✅ Perfume Malbec Boticário informações'
+      );
+      return;
+    }
+
+    const searchFn = brand === 'natura' ? searchNatura : searchBoticario;
+    const result = await searchFn(texto);
+
+    if (!result?.paginas?.length) {
+      await sendWhatsApp(phone,
+        'Não encontrei esse produto. Tente ser mais específico — inclua o nome da linha ou o código do produto.'
+      );
+      return;
+    }
+
+    const top = result.paginas[0];
+    const pagina = top.pagina_interna ?? top.pagina;
+    const { text, codigo } = await generateResponse(texto, top, brand);
+
+    const msg1 = codigo ? `${text} 🔍 Código: ${codigo}` : text;
+    const msg2 = `${BASE_URL}${buildImagemUrl(brand, top.arquivo)}`;
+    const msg3 = `📖 Ver no catálogo: ${BASE_URL}${buildFlipbookUrl(brand, pagina)}`;
+
+    await sendWhatsApp(phone, msg1);
+    await sendWhatsApp(phone, msg2);
+    await sendWhatsApp(phone, msg3);
+  } catch (err) {
+    console.error('Erro /whatsapp:', err.message);
+  }
+});
+
 app.use(express.json());
 app.get('/natura/:file', (req, res) => {
   const filePath = path.join(__dirname, 'public/natura', req.params.file);
@@ -137,54 +197,5 @@ async function sendWhatsApp(phone, text) {
     body: JSON.stringify({ number: phone, text }),
   });
 }
-
-app.post('/whatsapp', async (req, res) => {
-  res.sendStatus(200);
-
-  try {
-    const { event, data } = req.body ?? {};
-
-    if (event !== 'messages.upsert') return;
-    if (data?.key?.fromMe !== false) return;
-
-    const phone = data?.key?.remoteJid;
-    const texto = data?.message?.conversation ?? data?.message?.extendedTextMessage?.text;
-
-    if (!phone || !texto?.trim()) return;
-
-    const brand = detectBrand(texto);
-
-    if (!brand) {
-      await sendWhatsApp(phone,
-        'Para qual catálogo você quer buscar?\n\nDigite o nome do produto + a marca:\n✅ Sérum Chronos Natura informações\n✅ Perfume Malbec Boticário informações'
-      );
-      return;
-    }
-
-    const searchFn = brand === 'natura' ? searchNatura : searchBoticario;
-    const result = await searchFn(texto);
-
-    if (!result?.paginas?.length) {
-      await sendWhatsApp(phone,
-        'Não encontrei esse produto. Tente ser mais específico — inclua o nome da linha ou o código do produto.'
-      );
-      return;
-    }
-
-    const top = result.paginas[0];
-    const pagina = top.pagina_interna ?? top.pagina;
-    const { text, codigo } = await generateResponse(texto, top, brand);
-
-    const msg1 = codigo ? `${text} 🔍 Código: ${codigo}` : text;
-    const msg2 = `${BASE_URL}${buildImagemUrl(brand, top.arquivo)}`;
-    const msg3 = `📖 Ver no catálogo: ${BASE_URL}${buildFlipbookUrl(brand, pagina)}`;
-
-    await sendWhatsApp(phone, msg1);
-    await sendWhatsApp(phone, msg2);
-    await sendWhatsApp(phone, msg3);
-  } catch (err) {
-    console.error('Erro /whatsapp:', err.message);
-  }
-});
 
 app.listen(3001, () => console.log('✅ CRM Natura + Boticário: http://localhost:3001'));
