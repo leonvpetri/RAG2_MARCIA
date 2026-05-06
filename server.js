@@ -12,7 +12,7 @@ const { search: searchNatura }    = await import('./search_natura.js');
 const app = express();
 app.use(cors());
 
-app.post('/whatsapp', express.raw({ type: '*/*' }), async (req, res) => {
+app.post('/webhook', express.raw({ type: '*/*' }), async (req, res) => {
   res.sendStatus(200);
 
   let body;
@@ -67,7 +67,7 @@ app.post('/whatsapp', express.raw({ type: '*/*' }), async (req, res) => {
     await sendWhatsApp(phone, msg2);
     await sendWhatsApp(phone, msg3);
   } catch (err) {
-    console.error('Erro /whatsapp:', err.message);
+    console.error('Erro /webhook:', err.message);
   }
 });
 
