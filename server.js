@@ -59,13 +59,11 @@ app.post('/webhook', express.raw({ type: '*/*' }), async (req, res) => {
     const pagina = top.pagina_interna ?? top.pagina;
     const { text, codigo } = await generateResponse(texto, top, brand);
 
-    const msg1 = codigo ? `${text} 🔍 Código: ${codigo}` : text;
-    const msg2 = `${BASE_URL}${buildImagemUrl(brand, top.arquivo)}`;
-    const msg3 = `📖 Ver no catálogo: ${BASE_URL}${buildFlipbookUrl(brand, pagina)}`;
+    const msg1 = codigo ? `${text}\n🔍 Código: ${codigo}` : text;
+    const msg2 = `📖 Ver no catálogo: ${BASE_URL}${buildFlipbookUrl(brand, pagina)}`;
 
     await sendWhatsApp(phone, msg1);
     await sendWhatsApp(phone, msg2);
-    await sendWhatsApp(phone, msg3);
   } catch (err) {
     console.error('Erro /webhook:', err.message);
   }
